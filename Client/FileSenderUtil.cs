@@ -30,7 +30,8 @@ namespace ClientFileTransfer
             using (FileStream fileStream = File.OpenRead(path))
             {
                 String filename = Path.GetFileName(path);
-                return serializer.SerializeFileContent(fileStream, filename);
+                byte[] data = File.ReadAllBytes(path);
+                return new TransferredFile.TransferredFile(filename, data);
             }
         }
 

@@ -34,6 +34,7 @@ namespace ClientFileTransfer
             } catch (SocketException ex)
             {
                 await Console.Error.WriteLineAsync("Error while connecting to server socket! Try again later. \n" + ex.Message);
+                Console.ReadKey();
                 Environment.Exit(-1);
             }
         }
@@ -48,6 +49,7 @@ namespace ClientFileTransfer
             catch (SocketException ex)
             {
                 Console.Error.WriteLine("Error while connecting to server socket! Try again later. \n" + ex.Message);
+                Console.ReadKey();
                 Environment.Exit(-1);
             }
         }
@@ -60,6 +62,20 @@ namespace ClientFileTransfer
             } catch (SocketException ex)
             {
                 Console.Error.WriteLine("Error writing to server socket! Discarding.. \n" + ex.Message);
+                Console.ReadKey();
+            }
+        }
+
+        async public Task SendDataAsync(byte[] data)
+        {
+            try
+            {
+                await networkStream.WriteAsync(data, 0, data.Length);
+            }
+            catch (SocketException ex)
+            {
+                await Console.Error.WriteLineAsync("Error writing to server socket! Discarding.. \n" + ex.Message);
+                Console.ReadKey();
             }
         }
 

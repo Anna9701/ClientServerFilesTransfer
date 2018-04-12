@@ -18,48 +18,27 @@ namespace TransferredFile
         public FileSerializer() => formatter = new BinaryFormatter();
 
 
-        public FileStream DeserializeFileContent(TransferredFile file)
-        {
-            using (Stream stream = new MemoryStream(file.SerializedFile))
-            {
-                return (FileStream)formatter.Deserialize(stream);
-            }
-        }
-
-        public TransferredFile SerializeFileContent(FileStream file, string name)
-        {
-            TransferredFile transferredFile;
-            Stream destinationStream = new MemoryStream();
-            formatter.Serialize(destinationStream, file);
-            byte[] serializedFile = ReadFromStream(destinationStream);
- 
-            transferredFile = new TransferredFile(name, serializedFile);
-            destinationStream.Close();
-            return transferredFile;
-        }
-
         private byte[] ReadFromStream(Stream stream)
         {
-            int PADDING_SIZE = 10;
-            byte[] data = new byte[stream.Length + PADDING_SIZE];
             int numBytesToRead = (int)stream.Length;
-            int numBytesRead = 0;
+            byte[] data = new byte[numBytesToRead];
+            int readed = 0;
+            stream.Seek(0, SeekOrigin.Begin);
             do
             {
-                int readed = stream.Read(data, numBytesRead, PADDING_SIZE);
-                numBytesRead += readed;
-                numBytesToRead -= readed;
-            } while (numBytesToRead > 0);
+                readed += stream.Read(data, readed, numBytesToRead - readed);
+            } while (readed != numBytesToRead);
             return data;
         }
 
         public byte[] ParseTransferredFileToBytesArray (TransferredFile transferredFile)
         {
-            using(Stream destinationStrem = new MemoryStream())
+            using (Stream destinationStrem = new MemoryStream())
             {
                 formatter.Serialize(destinationStrem, transferredFile);
                 return ReadFromStream(destinationStrem);
             }
+
         }
         
         public TransferredFile ParseBytesArrayToTransferredFile(byte[] data)
