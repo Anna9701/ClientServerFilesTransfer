@@ -16,8 +16,8 @@ namespace Server
         private static int DefaultPort => 13000;
         private readonly IFileSerializer serializer;
 
-
         private const int SIZE = 256;
+        private const int LENGHT_OF_BUFFER_FOR_TRANSFER_SIZE = 32;
 
         private readonly Int32 port;
         private readonly IPAddress serverAddress;
@@ -40,7 +40,7 @@ namespace Server
         {
             while(true)
             {
-                Console.Write("Waiting for a connection... ");
+                Console.WriteLine("Waiting for a connection... ");
                 TcpClient client = server.AcceptTcpClient();
                 Thread clinetThread = new Thread(() => HandleClient(client));
                 clinetThread.Start();
@@ -52,28 +52,48 @@ namespace Server
         void HandleClient(TcpClient client)
         {
             
-            byte[] bytes = new Byte[sizeof(int)];
+            byte[] bytes = new Byte[LENGHT_OF_BUFFER_FOR_TRANSFER_SIZE];
             Console.WriteLine("Connected!");
-            using (NetworkStream stream = client.GetStream())
+            NetworkStream stream = client.GetStream();
+            
+            bool breaked = false;
+            int readed = stream.Read(bytes, 0, bytes.Length);
+            int size = Int32.Parse(Encoding.ASCII.GetString(bytes, 0, readed));
+            Console.WriteLine("Size of file to transfer is: {0}. If you want to break transfer, press Q", size);
+            bytes = new Byte[size];
+            readed = 0;
+            do
             {
-                int readed = stream.Read(bytes, 0, bytes.Length);
-                int size = Int32.Parse(System.Text.Encoding.ASCII.GetString(bytes, 0, readed));
-                Console.WriteLine("Received: {0}", size);
-                bytes = new Byte[size];
-                readed = 0;
-                do
+                try
                 {
-                    readed = stream.Read(bytes, readed, size - readed);
-                } while (readed != size);
-                SaveReceivedFile(bytes); 
-            }
-            client.Close();
+                    readed += stream.Read(bytes, readed, size - readed);
+                    Console.Out.WriteLine(String.Format("Download {0}%. If you want to break press Q, ENTER to continue", readed / size * 100));
+                    ConsoleKeyInfo consoleKey = Console.ReadKey();
+                    if (consoleKey.Key.Equals(ConsoleKey.Q))
+                    {
+                        breaked = true;
+                        break;
+                    }
+                } catch (System.IO.IOException ex)
+                {
+                    Console.Error.WriteLine(ex.Message);
+                    breaked = true;
+                    break;
+                }
+            } while (readed != size);
+
+            if (!breaked)
+                SaveReceivedFile(bytes);
+
+            stream.Close();
+            client.Close();          
         }
 
         private void SaveReceivedFile(byte[] receivedData) 
         {
             TransferredFile.TransferredFile file = serializer.ParseBytesArrayToTransferredFile(receivedData);
             System.IO.File.WriteAllBytes(file.FileName, file.SerializedFile);
+            Console.WriteLine("File successful copied");
         }
 
         public void Dispose()

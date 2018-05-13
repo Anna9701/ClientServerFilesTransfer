@@ -45,6 +45,7 @@ namespace TransferredFile
         {
             using(Stream sourceStream = new MemoryStream(data))
             {
+                sourceStream.Seek(0, SeekOrigin.Begin);
                 return (TransferredFile)formatter.Deserialize(sourceStream);
             }
         }
