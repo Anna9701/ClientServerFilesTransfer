@@ -17,37 +17,14 @@ namespace TransferredFile
 
         public FileSerializer() => formatter = new BinaryFormatter();
 
-
-        private byte[] ReadFromStream(Stream stream)
+        public void WriteToStream(Stream stream, TransferredFile transferredFile)
         {
-            int numBytesToRead = (int)stream.Length;
-            byte[] data = new byte[numBytesToRead];
-            int readed = 0;
-            stream.Seek(0, SeekOrigin.Begin);
-            do
-            {
-                readed += stream.Read(data, readed, numBytesToRead - readed);
-            } while (readed != numBytesToRead);
-            return data;
+            formatter.Serialize(stream, transferredFile);
         }
 
-        public byte[] ParseTransferredFileToBytesArray (TransferredFile transferredFile)
+        public TransferredFile ReadFromStream(Stream stream)
         {
-            using (Stream destinationStrem = new MemoryStream())
-            {
-                formatter.Serialize(destinationStrem, transferredFile);
-                return ReadFromStream(destinationStrem);
-            }
-
-        }
-        
-        public TransferredFile ParseBytesArrayToTransferredFile(byte[] data)
-        {
-            using(Stream sourceStream = new MemoryStream(data))
-            {
-                sourceStream.Seek(0, SeekOrigin.Begin);
-                return (TransferredFile)formatter.Deserialize(sourceStream);
-            }
+            return (TransferredFile) formatter.Deserialize(stream);
         }
     }
 }

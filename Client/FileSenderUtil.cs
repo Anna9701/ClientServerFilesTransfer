@@ -9,23 +9,17 @@ namespace ClientFileTransfer
 {
     class FileSenderUtil
     {
-        private readonly IFileSerializer serializer;
-
         public String Filename { get; set; }
-
-        public FileSenderUtil() => serializer = new FileSerializer();
-
-        public FileSenderUtil(IFileSerializer fileSerializer) => serializer = fileSerializer;
 
         public string AskForFilename()
         {
             String path;
-            System.Console.Out.WriteLine("Enter filename (with path): ");
+            Console.Out.WriteLine("Enter filename (with path): ");
             path = Console.In.ReadLine();
             return path;
         }
 
-        private TransferredFile.TransferredFile PrepareTransferredFile (String path)
+        public TransferredFile.TransferredFile GetTransferredFile (String path)
         {
             using (FileStream fileStream = File.OpenRead(path))
             {
@@ -33,12 +27,6 @@ namespace ClientFileTransfer
                 byte[] data = File.ReadAllBytes(path);
                 return new TransferredFile.TransferredFile(filename, data);
             }
-        }
-
-        public byte[] PrepareBytesMessageFromFile(String path)
-        {
-            TransferredFile.TransferredFile transferredFile = PrepareTransferredFile(path);
-            return serializer.ParseTransferredFileToBytesArray(transferredFile);
         }
     }
 }

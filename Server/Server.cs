@@ -23,6 +23,7 @@ namespace Server
         private readonly IPAddress serverAddress;
         private TcpListener server;
 
+
         public Server() : this(LocalHostAddress, DefaultPort)
         {
         }
@@ -55,45 +56,12 @@ namespace Server
             byte[] bytes = new Byte[LENGHT_OF_BUFFER_FOR_TRANSFER_SIZE];
             Console.WriteLine("Connected!");
             NetworkStream stream = client.GetStream();
-            
-            bool breaked = false;
-            int readed = stream.Read(bytes, 0, bytes.Length);
-            int size = Int32.Parse(Encoding.ASCII.GetString(bytes, 0, readed));
-            Console.WriteLine("Size of file to transfer is: {0}. If you want to break transfer, press Q", size);
-            bytes = new Byte[size];
-            readed = 0;
-            do
-            {
-                try
-                {
-                    readed += stream.Read(bytes, readed, size - readed);
-                    Console.Out.WriteLine(String.Format("Download {0}%. If you want to break press Q, ENTER to continue", readed / size * 100));
-                    ConsoleKeyInfo consoleKey = Console.ReadKey();
-                    if (consoleKey.Key.Equals(ConsoleKey.Q))
-                    {
-                        breaked = true;
-                        break;
-                    }
-                } catch (System.IO.IOException ex)
-                {
-                    Console.Error.WriteLine(ex.Message);
-                    breaked = true;
-                    break;
-                }
-            } while (readed != size);
 
-            if (!breaked)
-                SaveReceivedFile(bytes);
-
+            TransferredFile.TransferredFile transferredFile = serializer.ReadFromStream(stream);
+            System.IO.File.WriteAllBytes(transferredFile.FileName, transferredFile.SerializedFile);
+            Console.WriteLine("File successful copied");
             stream.Close();
             client.Close();          
-        }
-
-        private void SaveReceivedFile(byte[] receivedData) 
-        {
-            TransferredFile.TransferredFile file = serializer.ParseBytesArrayToTransferredFile(receivedData);
-            System.IO.File.WriteAllBytes(file.FileName, file.SerializedFile);
-            Console.WriteLine("File successful copied");
         }
 
         public void Dispose()

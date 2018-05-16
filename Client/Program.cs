@@ -18,21 +18,11 @@ namespace ClientFileTransfer
             FileSenderUtil senderUtil = new FileSenderUtil();
             String path = senderUtil.AskForFilename();
 
-            byte[] data = senderUtil.PrepareBytesMessageFromFile(path);
-            byte[] sizeToTransfer = System.Text.ASCIIEncoding.ASCII.GetBytes((sizeof(byte) * data.Length).ToString());
-
-            client.SendData(sizeToTransfer);
-            client.SendData(data);
+            TransferredFile.TransferredFile transferredFile = senderUtil.GetTransferredFile(path);
+            client.SendData(transferredFile);
 
             Console.WriteLine("Press any key to finish execution...");
             Console.ReadKey();
         }
     }
 }
-
-/****TODO: 
- * - wyjątki 
- * - async
- * 
- * ****//////
-

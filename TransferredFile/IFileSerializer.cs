@@ -8,7 +8,7 @@ namespace TransferredFile
 {
     public interface IFileSerializer
     {
-        byte[] ParseTransferredFileToBytesArray(TransferredFile transferredFile);
-        TransferredFile ParseBytesArrayToTransferredFile(byte[] data);
+        TransferredFile ReadFromStream(Stream stream);
+        void WriteToStream(Stream stream, TransferredFile transferredFile);
     }
 }

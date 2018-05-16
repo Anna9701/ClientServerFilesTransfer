@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net.Sockets;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
+using TransferredFile;
 
 namespace ClientFileTransfer
 {
@@ -12,11 +14,14 @@ namespace ClientFileTransfer
         private readonly int serverPort;
         private TcpClient tcpClient;
         private NetworkStream networkStream;
+        private readonly IFileSerializer serializer;
+
         public Client()
         {
             serverAddress = "127.0.0.1";
             serverPort = 13000;
             tcpClient = new TcpClient();
+            serializer = new FileSerializer();
         }
 
         public Client(String address, int port)
@@ -24,6 +29,7 @@ namespace ClientFileTransfer
             serverAddress = address;
             serverPort = port;
             tcpClient = new TcpClient();
+            serializer = new FileSerializer();
         }
 
         async public Task ConnectAsync()
@@ -54,11 +60,11 @@ namespace ClientFileTransfer
             }
         }
 
-        public void SendData(byte[] data)
+        public void SendData(TransferredFile.TransferredFile data)
         {
             try
             {
-                networkStream.Write(data, 0, data.Length);
+                serializer.WriteToStream(networkStream, data);
             } catch (SocketException ex)
             {
                 Console.Error.WriteLine("Error writing to server socket! Discarding.. \n" + ex.Message);
